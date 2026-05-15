@@ -6,6 +6,7 @@
 #include "proc.h"
 #include "syscall.h"
 #include "defs.h"
+#include "monitor.h"
 
 // Fetch the uint64 at addr from the current process.
 int
