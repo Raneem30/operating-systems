@@ -82,7 +82,7 @@ sys_read(void)
   uint64 ret = fileread(f, p, n);
 
   struct proc *pr = myproc();
-  printf("READ: PID %d read file\n", pr->pid);
+  printf("READ: PID %d read file %s\n", pr->pid, f->fname);
 
   return ret;
 }
@@ -103,7 +103,7 @@ sys_write(void)
   uint64 ret = filewrite(f, p, n);
 
   struct proc *pr = myproc();
-  printf("WRITE: PID %d wrote file\n", pr->pid);
+  printf("WRITE: PID %d wrote file %s\n", pr->pid, f->fname);
 
   return ret;
 }
@@ -121,7 +121,7 @@ sys_close(void)
   fileclose(f);
 
   struct proc *pr = myproc();
-  printf("CLOSE: PID %d closed file\n", pr->pid);
+  printf("CLOSE: PID %d closed file %s\n", pr->pid, f->fname);
 
   return 0;
 }
@@ -377,6 +377,7 @@ sys_open(void)
   }
 
   f->ip = ip;
+  safestrcpy(f->fname, path, MAXPATH);
   f->readable = !(omode & O_WRONLY);
   f->writable = (omode & O_WRONLY) || (omode & O_RDWR);
 
