@@ -65,6 +65,8 @@ sys_dup(void)
   return fd;
 }
 
+
+
 uint64
 sys_read(void)
 {
@@ -76,22 +78,34 @@ sys_read(void)
   argint(2, &n);
   if(argfd(0, 0, &f) < 0)
     return -1;
-  return fileread(f, p, n);
+
+  uint64 ret = fileread(f, p, n);
+
+  struct proc *pr = myproc();
+  printf("READ: PID %d read file\n", pr->pid);
+
+  return ret;
 }
 
 uint64
+
 sys_write(void)
 {
   struct file *f;
   int n;
   uint64 p;
-  
+ 
   argaddr(1, &p);
   argint(2, &n);
   if(argfd(0, 0, &f) < 0)
     return -1;
 
-  return filewrite(f, p, n);
+  uint64 ret = filewrite(f, p, n);
+
+  struct proc *pr = myproc();
+  printf("WRITE: PID %d wrote file\n", pr->pid);
+
+  return ret;
 }
 
 uint64
@@ -102,8 +116,13 @@ sys_close(void)
 
   if(argfd(0, &fd, &f) < 0)
     return -1;
+
   myproc()->ofile[fd] = 0;
   fileclose(f);
+
+  struct proc *pr = myproc();
+  printf("CLOSE: PID %d closed file\n", pr->pid);
+
   return 0;
 }
 
@@ -356,6 +375,7 @@ sys_open(void)
     f->type = FD_INODE;
     f->off = 0;
   }
+
   f->ip = ip;
   f->readable = !(omode & O_WRONLY);
   f->writable = (omode & O_WRONLY) || (omode & O_RDWR);
@@ -363,6 +383,10 @@ sys_open(void)
   if((omode & O_TRUNC) && ip->type == T_FILE){
     itrunc(ip);
   }
+
+  // LOGGING
+  struct proc *p = myproc();
+  printf("OPEN: PID %d opened file %s\n", p->pid, path);
 
   iunlock(ip);
   end_op();
@@ -412,7 +436,7 @@ sys_chdir(void)
   char path[MAXPATH];
   struct inode *ip;
   struct proc *p = myproc();
-  
+ 
   begin_op();
   if(argstr(0, path, MAXPATH) < 0 || (ip = namei(path)) == 0){
     end_op();
