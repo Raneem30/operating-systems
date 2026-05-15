@@ -116,6 +116,8 @@ sys_close(void)
 
   if(argfd(0, &fd, &f) < 0)
     return -1;
+   char name[MAXPATH];
+  safestrcpy(name, f->fname, MAXPATH);
 
   myproc()->ofile[fd] = 0;
   fileclose(f);
