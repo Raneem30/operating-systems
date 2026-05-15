@@ -3,7 +3,7 @@
 // Mostly argument checking, since we don't trust
 // user code, and calls into file.c and fs.c.
 //
-
+#include "filelog.h"
 #include "types.h"
 #include "riscv.h"
 #include "defs.h"
@@ -527,4 +527,23 @@ sys_pipe(void)
     return -1;
   }
   return 0;
+}
+uint64
+sys_getlogs(void)
+{
+    uint64 addr;
+    int max;
+
+    argaddr(0, &addr);
+    argint(1, &max);
+
+    struct log_entry buf[MAX_LOGS];
+    int n = filelog_get(buf, max);
+
+    if(copyout(myproc()->pagetable, addr,
+               (char*)buf,
+               n * sizeof(struct log_entry)) < 0)
+        return -1;
+
+    return n;
 }
