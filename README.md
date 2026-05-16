@@ -152,6 +152,29 @@ X
 
 ---
 
+## Bonus Feature
+
+As an extra feature, the `showlogs` program supports log filtering.
+
+Instead of printing all logs, the user can filter logs by:
+
+* syscall type
+* process ID (PID)
+
+Examples:
+
+```sh
+showlogs
+showlogs open
+showlogs read
+showlogs write
+showlogs close
+showlogs 3
+```
+
+This feature makes the monitoring system more useful for debugging and security analysis because the user can focus on specific operations or a specific process.
+
+
 ## References
 
 - xv6 Repository:
