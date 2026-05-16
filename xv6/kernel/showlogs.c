@@ -4,12 +4,23 @@
 
 struct log_entry {
     int pid;
-    int fd;
-    char syscall_name[16];
-    char filename[64];
+    char proc_name[16];
+    char file_name[128];
+    int action;
+    int tick;
 };
 
-#define MAX_LOGS 128
+#define MAX_LOGS 512
+
+char*
+action_name(int action)
+{
+    if(action == 0) return "open";
+    if(action == 1) return "read";
+    if(action == 2) return "write";
+    if(action == 3) return "close";
+    return "unknown";
+}
 
 int
 main(int argc, char *argv[])
@@ -19,7 +30,6 @@ main(int argc, char *argv[])
     int filter_pid = -1;
     int opens = 0, reads = 0, writes = 0, closes = 0;
 
-    // help
     if(argc == 2 && strcmp(argv[1], "help") == 0){
         printf("Usage:\n");
         printf("  showlogs       - show all logs\n");
@@ -28,7 +38,6 @@ main(int argc, char *argv[])
         exit(0);
     }
 
-    // pid filter
     if(argc == 2)
         filter_pid = atoi(argv[1]);
 
@@ -42,31 +51,29 @@ main(int argc, char *argv[])
         exit(0);
     }
 
-    printf("PID\tSyscall\t\tFD\tFilename\n");
-    printf("---\t-------\t\t--\t--------\n");
+    printf("PID\tProcess\t\tAction\tTick\tFilename\n");
 
     for(i = 0; i < n; i++){
         if(filter_pid != -1 && logs[i].pid != filter_pid)
             continue;
 
-        printf("%d\t%s\t\t%d\t%s\n",
+        printf("%d\t%s\t\t%s\t%d\t%s\n",
             logs[i].pid,
-            logs[i].syscall_name,
-            logs[i].fd,
-            logs[i].filename);
+            logs[i].proc_name,
+            action_name(logs[i].action),
+            logs[i].tick,
+            logs[i].file_name);
 
-        if(strcmp(logs[i].syscall_name, "open") == 0) opens++;
-        else if(strcmp(logs[i].syscall_name, "read") == 0) reads++;
-        else if(strcmp(logs[i].syscall_name, "write") == 0) writes++;
-        else if(strcmp(logs[i].syscall_name, "close") == 0) closes++;
+        if(logs[i].action == 0) opens++;
+        else if(logs[i].action == 1) reads++;
+        else if(logs[i].action == 2) writes++;
+        else if(logs[i].action == 3) closes++;
     }
 
-    // summary
     printf("\nopen:%d  read:%d  write:%d  close:%d  total:%d\n",
         opens, reads, writes, closes,
         opens + reads + writes + closes);
 
-    // warning if too many ops from one process
     if(filter_pid == -1){
         for(i = 0; i < n; i++){
             int count = 0;
