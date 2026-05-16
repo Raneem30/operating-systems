@@ -25,9 +25,13 @@ filelog_init(void)
 void
 filelog_add(int action, char *filename)
 {
-    struct proc *p = myproc(); 
+    struct proc *p = myproc();
 
-    acquire(&filelog.lock);    
+    if(filename && strcmp(filename, "console") == 0)
+        return;
+
+    acquire(&filelog.lock);
+
     struct log_entry *e = &filelog.entries[filelog.tail];
 
     e->pid    = p->pid;
